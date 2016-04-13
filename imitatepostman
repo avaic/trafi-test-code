@@ -7,8 +7,6 @@ lat_coord = list(map(float, argv[1::2]))
 lng_coord = list(map(float, argv[2::2]))
 
 
-# here we save a list of polylines
-polylines =[]
 
 # finds polyline between two points and decodes it
 def find_polyline(lat_from, lng_from, lat_to, lng_to):
@@ -19,26 +17,26 @@ def find_polyline(lat_from, lng_from, lat_to, lng_to):
         return PolylineCodec().decode(encoded_line)
 
 
+# we save a list of polylines, initialize with the starting position
+# finds polylines between consecutive points and adds to polylines list. The first point of each segment is excluded to avoid overlap between consecutive segments
+def find_multiple_polylines(lat_list, lng_list):
+    x_from, y_from = lat_list.pop(0),lng_list.pop(0)
+    polylines = [[x_from, y_from]]
+    for x_to, y_to in zip(lat_coord,lng_coord):
+        if find_polyline(x_from, y_from, x_to, y_to):
+            print(find_polyline(x_from, y_from, x_to, y_to))
+            polylines.append(find_polyline(x_from, y_from, x_to, y_to)[1:])
+            x_from, y_from = x_to, y_to
+        else:
+            raise Exception('There is no way between these points.')
+    return polylines
 
-x_from, y_from = lat_coord.pop(0),lng_coord.pop(0)
 
-# finds polylines between consecutive points and adds to polylines list
-for x_to, y_to in zip(lat_coord,lng_coord):
-    if find_polyline(x_from, y_from, x_to, y_to):
-        polylines.append(find_polyline(x_from, y_from, x_to, y_to))
-        x_from, y_from = x_to, y_to
-    else:
-        break
+if __name__ == "__main__":
+    polyline = []
 
-polyline = []
+    # out of many segments of polylines make a single polyline
+    for i in find_multiple_polylines(lat_coord, lng_coord):
+        polyline += i
 
-print(polylines)
-
-# out of many segments of polylines make a single polyline
-for i in polylines:
-    polyline += i
-
-# decode polyline
-decoded_polyline = PolylineCodec().encode(polyline)
-
-print(decoded_polyline)
+    print(polyline)
