@@ -1,0 +1,44 @@
+import requests
+from sys import argv
+from polyline.codec import PolylineCodec
+
+# parse input, which is of the form lat_1 lng_1 lat_2 lng_2 lat_3 lng_3 lat_4 lng_4 ...
+lat_coord = list(map(float, argv[1::2]))
+lng_coord = list(map(float, argv[2::2]))
+
+
+# here we save a list of polylines
+polylines =[]
+
+# finds polyline between two points and decodes it
+def find_polyline(lat_from, lng_from, lat_to, lng_to):
+    data = '{"From":{"Lat":%f,"Lng":%f,"TeleportRadius":25.0},"To":[{"Lat":%f,"Lng":%f,"TeleportRadius":25.0}]}' %(lat_from, lng_from, lat_to, lng_to)
+    r = requests.post('http://walk-api.trafi.com:8080/driving-directions', data)
+    if r.json():
+        encoded_line = r.json()['points']
+        return PolylineCodec().decode(encoded_line)
+
+
+
+x_from, y_from = lat_coord.pop(0),lng_coord.pop(0)
+
+# finds polylines between consecutive points and adds to polylines list
+for x_to, y_to in zip(lat_coord,lng_coord):
+    if find_polyline(x_from, y_from, x_to, y_to):
+        polylines.append(find_polyline(x_from, y_from, x_to, y_to))
+        x_from, y_from = x_to, y_to
+    else:
+        break
+
+polyline = []
+
+print(polylines)
+
+# out of many segments of polylines make a single polyline
+for i in polylines:
+    polyline += i
+
+# decode polyline
+decoded_polyline = PolylineCodec().encode(polyline)
+
+print(decoded_polyline)
