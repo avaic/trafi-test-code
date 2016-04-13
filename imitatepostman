@@ -21,10 +21,9 @@ def find_polyline(lat_from, lng_from, lat_to, lng_to):
 # finds polylines between consecutive points and adds to polylines list. The first point of each segment is excluded to avoid overlap between consecutive segments
 def find_multiple_polylines(lat_list, lng_list):
     x_from, y_from = lat_list.pop(0),lng_list.pop(0)
-    polylines = [[x_from, y_from]]
+    polylines = [[(x_from, y_from)]]
     for x_to, y_to in zip(lat_coord,lng_coord):
         if find_polyline(x_from, y_from, x_to, y_to):
-            print(find_polyline(x_from, y_from, x_to, y_to))
             polylines.append(find_polyline(x_from, y_from, x_to, y_to)[1:])
             x_from, y_from = x_to, y_to
         else:
@@ -38,5 +37,7 @@ if __name__ == "__main__":
     # out of many segments of polylines make a single polyline
     for i in find_multiple_polylines(lat_coord, lng_coord):
         polyline += i
+
+    polyline = PolylineCodec().encode(polyline)
 
     print(polyline)
