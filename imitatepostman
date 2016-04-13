@@ -1,6 +1,7 @@
 import requests
 from sys import argv
 from polyline.codec import PolylineCodec
+import gmplot
 
 # parse input, which is of the form lat_1 lng_1 lat_2 lng_2 lat_3 lng_3 lat_4 lng_4 ...
 lat_coord = list(map(float, argv[1::2]))
@@ -38,6 +39,8 @@ if __name__ == "__main__":
     for i in find_multiple_polylines(lat_coord, lng_coord):
         polyline += i
 
-    polyline = PolylineCodec().encode(polyline)
+    gmap = gmplot.GoogleMapPlotter(37.428, -122.145, 16)
+    gmap.plot(latitudes, longitudes)
+    #polyline = PolylineCodec().encode(polyline)
 
     print(polyline)
